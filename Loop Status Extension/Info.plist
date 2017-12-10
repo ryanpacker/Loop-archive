@@ -22,7 +22,7 @@
 	<string>1.5.0</string>
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
-    <key>AppGroupIdentifier</key>
+	<key>AppGroupIdentifier</key>
 	<string>$(APP_GROUP_IDENTIFIER)</string>
 	<key>NSExtension</key>
 	<dict>
