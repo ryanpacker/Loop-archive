@@ -625,6 +625,8 @@ final class DeviceDataManager {
 
             if let timeZone = UserDefaults.standard.pumpTimeZone {
                 pumpState.timeZone = timeZone
+            } else {
+                UserDefaults.standard.pumpTimeZone = TimeZone.current
             }
 
             if let pumpModelNumber = UserDefaults.standard.pumpModelNumber {
@@ -689,6 +691,7 @@ extension DeviceDataManager: CGMManagerDelegate {
                 self.assertCurrentPumpData()
             }
         case .noData:
+            self.assertCurrentPumpData()
             break
         case .error(let error):
             self.setLastError(error: error)
