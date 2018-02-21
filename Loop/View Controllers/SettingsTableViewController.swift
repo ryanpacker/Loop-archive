@@ -955,7 +955,7 @@ final class SettingsTableViewController: UITableViewController, DailyValueSchedu
                             AnalyticsManager.shared.didChangeCarbRatioSchedule()
                         case .insulinSensitivity:
                             dataManager.loopManager.insulinSensitivitySchedule = InsulinSensitivitySchedule(unit: controller.unit, dailyItems: controller.scheduleItems, timeZone: controller.timeZone)
-                            AnalyticsManager.shared.didChangeInsulinSensitivitySchedule()
+                            
                         default:
                             break
                         }
