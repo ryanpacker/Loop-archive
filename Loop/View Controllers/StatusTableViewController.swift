@@ -593,6 +593,12 @@ final class StatusTableViewController: ChartsTableViewController {
             }
         }
     }
+    
+    private var remoteTempTargetMode: Bool? = nil {
+        didSet {
+            guard oldValue != remoteTempTargetMode else {
+                return
+            }
 
     // MARK: - Table view data source
 
@@ -982,4 +988,7 @@ final class StatusTableViewController: ChartsTableViewController {
             UIApplication.shared.open(url)
         }
     }
+}
+}
+
 }
