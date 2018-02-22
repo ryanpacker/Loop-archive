@@ -600,6 +600,15 @@ final class StatusTableViewController: ChartsTableViewController {
                 return
             }
 
+//            if let remoteTempTargetMode = remoteTempTargetMode {
+//            }
+//                toolbarItems![2] = createPreMealButtonItem(selected: preMealMode)
+//            } else {
+//                toolbarItems![2].isEnabled = false
+//            }
+        }
+    }
+
     // MARK: - Table view data source
 
     override func numberOfSections(in tableView: UITableView) -> Int {
