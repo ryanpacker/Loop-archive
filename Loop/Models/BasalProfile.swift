@@ -6,6 +6,7 @@
 //  Copyright © 2018 LoopKit Authors. All rights reserved.
 //
 import Foundation
+import UIKit
 
 enum BasalProfile: Int, CustomStringConvertible {
     case notSet = 0
