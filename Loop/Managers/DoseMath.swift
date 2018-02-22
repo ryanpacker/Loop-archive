@@ -423,7 +423,7 @@ extension Collection where Iterator.Element == GlucoseValue {
         guard let correction = self.insulinCorrection(
             to: correctionRange,
             at: date,
-            suspendThreshold: suspendThreshold ?? correctionRange.minQuantity(at: date),
+            suspendThreshold: HKQuantity(unit: HKUnit.milligramsPerDeciliter(), doubleValue: 55),
             sensitivity: sensitivity.quantity(at: date),
             model: model
         ) else {
