@@ -924,8 +924,13 @@ final class SettingsTableViewController: UITableViewController, DailyValueSchedu
                         if dataManager.loopManager.settings.activeBasalProfile == .standard && BasalRateSchedule(dailyItems: controller.scheduleItems, timeZone: controller.timeZone) == nil {
                             dataManager.loopManager.basalRateSchedule = nil
                             dataManager.loopManager.settings.activeBasalProfile = .notSet
+                            return
                         }
                         
+                        if dataManager.loopManager.settings.activeBasalProfile == .standard {
+                            dataManager.loopManager.basalRateSchedule = dataManager.loopManager.settings.basalProfileStandard
+                            AnalyticsManager.shared.didChangeBasalRateSchedule()
+                        }
                     }
                 case .basalRateA:
                     if let controller = controller as? SingleValueScheduleTableViewController {
@@ -934,6 +939,12 @@ final class SettingsTableViewController: UITableViewController, DailyValueSchedu
                         if dataManager.loopManager.settings.activeBasalProfile == .patternA && BasalRateSchedule(dailyItems: controller.scheduleItems, timeZone: controller.timeZone) == nil {
                             dataManager.loopManager.basalRateSchedule = nil
                             dataManager.loopManager.settings.activeBasalProfile = .notSet
+                            return
+                        }
+                        
+                        if dataManager.loopManager.settings.activeBasalProfile == .patternA {
+                            dataManager.loopManager.basalRateSchedule = dataManager.loopManager.settings.basalProfileA
+                            AnalyticsManager.shared.didChangeBasalRateSchedule()
                         }
                     }
                     
@@ -943,6 +954,11 @@ final class SettingsTableViewController: UITableViewController, DailyValueSchedu
                         if dataManager.loopManager.settings.activeBasalProfile == .patternB && BasalRateSchedule(dailyItems: controller.scheduleItems, timeZone: controller.timeZone) == nil {
                             dataManager.loopManager.basalRateSchedule = nil
                             dataManager.loopManager.settings.activeBasalProfile = .notSet
+                            return
+                        }
+                        if dataManager.loopManager.settings.activeBasalProfile == .patternB {
+                            dataManager.loopManager.basalRateSchedule = dataManager.loopManager.settings.basalProfileB
+                            AnalyticsManager.shared.didChangeBasalRateSchedule()
                         }
                     }
                     
