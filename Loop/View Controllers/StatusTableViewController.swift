@@ -594,6 +594,21 @@ final class StatusTableViewController: ChartsTableViewController {
             }
         }
     }
+    
+    private var remoteTempTargetMode: Bool? = nil {
+        didSet {
+            guard oldValue != remoteTempTargetMode else {
+                return
+            }
+
+//            if let remoteTempTargetMode = remoteTempTargetMode {
+//            }
+//                toolbarItems![2] = createPreMealButtonItem(selected: preMealMode)
+//            } else {
+//                toolbarItems![2].isEnabled = false
+//            }
+        }
+    }
 
     private var remoteTempTargetMode: Bool? = nil {
         didSet {
@@ -998,3 +1013,6 @@ final class StatusTableViewController: ChartsTableViewController {
         }
     }
 }
+
+
+

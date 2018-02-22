@@ -246,6 +246,11 @@
 		7D70765E1FE06EE3004AC8EA /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 7D7076601FE06EE3004AC8EA /* Localizable.strings */; };
 		7D7076631FE06EE4004AC8EA /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 7D7076651FE06EE4004AC8EA /* Localizable.strings */; };
 		7D7076681FE0702F004AC8EA /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 7D70766A1FE0702F004AC8EA /* InfoPlist.strings */; };
+		7DB5706C203E4595004322F7 /* BasalProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DB5706B203E4595004322F7 /* BasalProfile.swift */; };
+		7DB5706D203E4636004322F7 /* BasalProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DB5706B203E4595004322F7 /* BasalProfile.swift */; };
+		7DB5706E203E4638004322F7 /* BasalProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DB5706B203E4595004322F7 /* BasalProfile.swift */; };
+		7DB5706F203E4639004322F7 /* BasalProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DB5706B203E4595004322F7 /* BasalProfile.swift */; };
+		7DB57070203E4639004322F7 /* BasalProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DB5706B203E4595004322F7 /* BasalProfile.swift */; };
 		894B91CD1FF9F45900DA65F5 /* GlucoseRangeScheduleOverrideUserInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 894B91CC1FF9F45900DA65F5 /* GlucoseRangeScheduleOverrideUserInfo.swift */; };
 		894B91CE1FF9F45900DA65F5 /* GlucoseRangeScheduleOverrideUserInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 894B91CC1FF9F45900DA65F5 /* GlucoseRangeScheduleOverrideUserInfo.swift */; };
 		894F71E21FFEC4D8007D365C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 894F71E11FFEC4D8007D365C /* Assets.xcassets */; };
@@ -622,6 +627,7 @@
 		7D70765F1FE06EE3004AC8EA /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = es.lproj/Localizable.strings; sourceTree = "<group>"; };
 		7D7076641FE06EE4004AC8EA /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = es.lproj/Localizable.strings; sourceTree = "<group>"; };
 		7D7076691FE0702F004AC8EA /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = es.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		7DB5706B203E4595004322F7 /* BasalProfile.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BasalProfile.swift; sourceTree = "<group>"; };
 		7DD382761F8DBFC60071272B /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = es.lproj/LaunchScreen.strings; sourceTree = "<group>"; };
 		7DD382771F8DBFC60071272B /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = es.lproj/Main.strings; sourceTree = "<group>"; };
 		7DD382781F8DBFC60071272B /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = es.lproj/MainInterface.strings; sourceTree = "<group>"; };
@@ -759,6 +765,7 @@
 				43880F961D9D8052009061A8 /* ServiceAuthentication */,
 				43DE92601C555C26001FFDE1 /* AbsorptionTimeType+CarbKit.swift */,
 				C17824A41E1AD4D100D9D25C /* BolusRecommendation.swift */,
+				7DB5706B203E4595004322F7 /* BasalProfile.swift */,
 				4309786D1E73DAD100BEBC82 /* CGM.swift */,
 				540DED961E14C75F002B2491 /* EnliteSensorDisplayable.swift */,
 				43E397A21D56B9E40028E321 /* Glucose.swift */,
@@ -1596,6 +1603,7 @@
 				439BED2E1E760BC600B0AED5 /* EnliteCGMManager.swift in Sources */,
 				4341F4EB1EDB92AC001C936B /* LogglyService.swift in Sources */,
 				43CE7CDE1CA8B63E003CC1B0 /* Data.swift in Sources */,
+				7DB5706C203E4595004322F7 /* BasalProfile.swift in Sources */,
 				43BFF0CB1E466C0900FF19A9 /* StateColorPalette.swift in Sources */,
 				43F5C2DB1B92A5E1003EB13D /* SettingsTableViewController.swift in Sources */,
 				C11C87DD1E21E53500BB71D3 /* GlucoseThreshold.swift in Sources */,
@@ -1734,6 +1742,7 @@
 				43E2D8DB1D20C03B004DA55F /* NSTimeInterval.swift in Sources */,
 				43E2D8D41D20BF42004DA55F /* DoseMathTests.swift in Sources */,
 				C11C87DE1E21EAAD00BB71D3 /* HKUnit.swift in Sources */,
+				7DB5706F203E4639004322F7 /* BasalProfile.swift in Sources */,
 				C13BAD941E8009B000050CB5 /* NumberFormatter.swift in Sources */,
 				C17824A61E1AF91F00D9D25C /* BolusRecommendation.swift in Sources */,
 			);
@@ -1744,6 +1753,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				43E2D9151D20C5A2004DA55F /* KeychainManagerTests.swift in Sources */,
+				7DB57070203E4639004322F7 /* BasalProfile.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1752,6 +1762,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				4FAC02541E22F6B20087A773 /* NSTimeInterval.swift in Sources */,
+				7DB5706D203E4636004322F7 /* BasalProfile.swift in Sources */,
 				4FB76FBA1E8C42CE00B39636 /* UIColor.swift in Sources */,
 				4F2C15831E0757E600E160D4 /* HKUnit.swift in Sources */,
 				43E93FB51E4675E800EAB8DB /* NumberFormatter.swift in Sources */,
@@ -1775,6 +1786,7 @@
 				4FF4D0F91E17268800846527 /* IdentifiableClass.swift in Sources */,
 				436961911F19D11E00447E89 /* ChartPointsContextFillLayer.swift in Sources */,
 				4FF4D0F81E1725B000846527 /* NibLoadable.swift in Sources */,
+				7DB5706E203E4638004322F7 /* BasalProfile.swift in Sources */,
 				4326BA641F3A44D9007CCAD4 /* ChartLineModel.swift in Sources */,
 				4F7528AA1DFE215100C322D6 /* HKUnit.swift in Sources */,
 				4F7528A91DFE212600C322D6 /* GlucoseTrend.swift in Sources */,
