@@ -1,7 +1,7 @@
 github "LoopKit/xDripG5" "v0.8.1"
 github "amplitude/Amplitude-iOS" "v3.14.1"
 github "i-schuetz/SwiftCharts" "0.6.1"
-github "kdisimone/LoopKit" "864707a0311381351dc110c442cf7f63732df7ca"
+github "kdisimone/LoopKit" "949b051da83371a339cb874589f2a05817de09e4"
 github "mddub/G4ShareSpy" "v0.3.3"
 github "mddub/dexcom-share-client-swift" "v0.4.1"
 github "ps2/rileylink_ios" "v1.2.2"
