@@ -11,11 +11,16 @@ import LoopKit
 import InsulinKit
 import MinimedKit
 import HealthKit
+import NightscoutUploadKit
 
 extension UserDefaults {
 
     private enum Key: String {
+        case activeBasalProfile = "com.loudnate.Naterade.activeBasalProfile"
         case basalRateSchedule = "com.loudnate.Naterade.BasalRateSchedule"
+        case basalRateScheduleA = "com.loudnate.Naterade.BasalRateScheduleA"
+        case basalRateScheduleB = "com.loudnate.Naterade.BasalRateScheduleB"
+        case basalRateScheduleStandard = "com.loudnate.Naterade.BasalRateScheduleStandard"
         case batteryChemistry = "com.loopkit.Loop.BatteryChemistry"
         case cgmSettings = "com.loopkit.Loop.cgmSettings"
         case carbRatioSchedule = "com.loudnate.Naterade.CarbRatioSchedule"
@@ -29,6 +34,7 @@ extension UserDefaults {
         case pumpModelNumber = "com.loudnate.Naterade.PumpModelNumber"
         case pumpRegion = "com.loopkit.Loop.PumpRegion"
         case pumpTimeZone = "com.loudnate.Naterade.PumpTimeZone"
+        case lastUploadedNightscoutProfile = "com.loopkit.Loop.lastUploadedNightscoutProfile"
     }
 
     var basalRateSchedule: BasalRateSchedule? {
@@ -41,6 +47,60 @@ extension UserDefaults {
         }
         set {
             set(newValue?.rawValue, forKey: Key.basalRateSchedule.rawValue)
+        }
+    }
+    
+    var basalRateScheduleA: BasalRateSchedule? {
+        get {
+            if let rawValue = dictionary(forKey: Key.basalRateScheduleA.rawValue) {
+                return BasalRateSchedule(rawValue: rawValue)
+            } else {
+                return nil
+            }
+        }
+        set {
+            set(newValue?.rawValue, forKey: Key.basalRateScheduleA.rawValue)
+        }
+    }
+    
+    var basalRateScheduleB: BasalRateSchedule? {
+        get {
+            if let rawValue = dictionary(forKey: Key.basalRateScheduleB.rawValue) {
+                return BasalRateSchedule(rawValue: rawValue)
+            } else {
+                return nil
+            }
+        }
+        set {
+            set(newValue?.rawValue, forKey: Key.basalRateScheduleB.rawValue)
+        }
+    }
+    
+    var basalRateScheduleStandard: BasalRateSchedule? {
+        get {
+            if let rawValue = dictionary(forKey: Key.basalRateScheduleStandard.rawValue) {
+                return BasalRateSchedule(rawValue: rawValue)
+            } else {
+                return nil
+            }
+        }
+        set {
+            set(newValue?.rawValue, forKey: Key.basalRateScheduleStandard.rawValue)
+        }
+    }
+    
+    var activeBasalProfile: BasalProfile? {
+        get {
+            let rawValue = Key.activeBasalProfile.rawValue
+            return BasalProfile(rawValue: integer(forKey: rawValue))
+            
+        }
+        set {
+            if let activeBasalProfile = newValue {
+                set(activeBasalProfile.rawValue, forKey: Key.activeBasalProfile.rawValue)
+            } else {
+                removeObject(forKey: Key.activeBasalProfile.rawValue)
+            }
         }
     }
 
@@ -110,11 +170,15 @@ extension UserDefaults {
                 // Migrate the version 0 case
                 defer {
                     removeObject(forKey: "com.loudnate.Naterade.DosingEnabled")
+                    removeObject(forKey: "com.loudnate.Naterade.activeBasalProfile")
                     removeObject(forKey: "com.loudnate.Naterade.GlucoseTargetRangeSchedule")
                     removeObject(forKey: "com.loudnate.Naterade.MaximumBasalRatePerHour")
                     removeObject(forKey: "com.loudnate.Naterade.MaximumBolus")
                     removeObject(forKey: "com.loopkit.Loop.MinimumBGGuard")
                     removeObject(forKey: "com.loudnate.Loop.RetrospectiveCorrectionEnabled")
+                    removeObject(forKey: "com.loudnate.Naterade.BasalRateScheduleA")
+                    removeObject(forKey: "com.loudnate.Naterade.BasalRateScheduleB")
+                    removeObject(forKey: "com.loudnate.Naterade.BasalRateScheduleStandard")
                 }
 
                 let glucoseTargetRangeSchedule: GlucoseRangeSchedule?
@@ -147,7 +211,11 @@ extension UserDefaults {
                     maximumBasalRatePerHour: maximumBasalRatePerHour,
                     maximumBolus: maximumBolus,
                     suspendThreshold: suspendThreshold,
-                    retrospectiveCorrectionEnabled: bool(forKey: "com.loudnate.Loop.RetrospectiveCorrectionEnabled")
+                    retrospectiveCorrectionEnabled: bool(forKey: "com.loudnate.Loop.RetrospectiveCorrectionEnabled"),
+                    basalProfileStandard: basalRateScheduleStandard,
+                    basalProfileA: basalRateScheduleA,
+                    basalProfileB: basalRateScheduleB,
+                    activeBasalProfile: activeBasalProfile
                 )
                 self.loopSettings = settings
 
@@ -277,3 +345,62 @@ extension UserDefaults {
     }
 
 }
+
+/// Code adopted from @trixing for automatic uploading of NS profile using Loop settings
+
+extension UserDefaults {
+    
+    var lastUploadedNightscoutProfile: String {
+        get {
+            return string(forKey: Key.lastUploadedNightscoutProfile.rawValue) ?? "{}"
+        }
+        set {
+            set(newValue, forKey: Key.lastUploadedNightscoutProfile.rawValue)
+        }
+    }
+    
+    func uploadProfile(uploader: NightscoutUploader, retry: Int = 0) {
+        // TODO: Check last upload date, and only upload on demand.
+        guard let glucoseTargetRangeSchedule = loopSettings?.glucoseTargetRangeSchedule,
+            let insulinSensitivitySchedule = insulinSensitivitySchedule,
+            let carbRatioSchedule = carbRatioSchedule,
+            let basalRateSchedule = basalRateSchedule
+            
+            else {
+                return
+        }
+        if retry > 5 {
+            return
+        }
+        let profile = NightscoutProfile(
+            timestamp: Date(),
+            name: "Loop",
+            rangeSchedule: glucoseTargetRangeSchedule,
+            sensitivity: insulinSensitivitySchedule,
+            carbs: carbRatioSchedule,
+            basal : basalRateSchedule,
+            timezone : TimeZone.current,
+            dia : (insulinModelSettings?.model.effectDuration ?? 0) / 3600,
+            settings : loopSettings?.rawValue ?? [:]
+        )
+        if profile.json != lastUploadedNightscoutProfile {
+            uploader.uploadProfile(profile) { (result) in
+                switch result {
+                case .failure(let error):
+                    print("uploadProfile failed, try \(retry)", error as Any)
+                    // Try again with linear backoff
+                    let retries = retry + 1
+                    DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + Double(300 * retries) ) {
+                        self.uploadProfile(uploader: uploader, retry: retries)
+                    }
+                case .success(_):
+                    if let json = profile.json {
+                        self.lastUploadedNightscoutProfile = json
+                    }
+                }
+            }
+        }
+    }
+    
+}
+
