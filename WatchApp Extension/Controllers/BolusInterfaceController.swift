@@ -136,8 +136,10 @@ final class BolusInterfaceController: WKInterfaceController, IdentifiableClass {
             let bolus = SetBolusUserInfo(value: bolusValue, startDate: Date())
 
             do {
-                try WCSession.default().sendBolusMessage(bolus) { (error) in
-                    ExtensionDelegate.shared().present(error)
+                try WCSession.default.sendBolusMessage(bolus) { (error) in
+                    DispatchQueue.main.async {
+                        ExtensionDelegate.shared().present(error)
+                    }
                 }
             } catch {
                 presentAlert(
@@ -165,7 +167,7 @@ extension BolusInterfaceController: WKCrownDelegate {
         accumulatedRotation += rotationalDelta
 
         let remainder = accumulatedRotation.truncatingRemainder(dividingBy: rotationsPerValue)
-        pickerValue += Int((accumulatedRotation - remainder).divided(by: rotationsPerValue))
+        pickerValue += Int((accumulatedRotation - remainder) / rotationsPerValue)
         accumulatedRotation = remainder
     }
 }

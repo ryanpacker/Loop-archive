@@ -8,239 +8,314 @@
 
 import Foundation
 import LoopKit
+import InsulinKit
 import MinimedKit
+import HealthKit
+import RileyLinkKit
+
+extension UserDefaults {
+    static let appGroup: UserDefaults = {
+        let shared = UserDefaults(suiteName: Bundle.main.appGroupSuiteName)
+        let standard = UserDefaults.standard
+
+        // Use an old key as a migration sentinel
+        if let shared = shared, standard.basalRateSchedule != nil && shared.basalRateSchedule == nil {
+            shared.basalRateSchedule = standard.basalRateSchedule
+            shared.carbRatioSchedule = standard.carbRatioSchedule
+            shared.cgm               = standard.cgm
+            shared.connectedPeripheralIDs = standard.connectedPeripheralIDs
+            shared.loopSettings      = standard.loopSettings
+            shared.insulinModelSettings = standard.insulinModelSettings
+            shared.insulinCounteractionEffects = standard.insulinCounteractionEffects
+            shared.insulinSensitivitySchedule = standard.insulinSensitivitySchedule
+            shared.preferredInsulinDataSource = standard.preferredInsulinDataSource
+            shared.batteryChemistry  = standard.batteryChemistry
+        }
+
+        return shared ?? standard
+    }()
+}
 
 extension UserDefaults {
 
     private enum Key: String {
-        case BasalRateSchedule = "com.loudnate.Naterade.BasalRateSchedule"
-        case CarbRatioSchedule = "com.loudnate.Naterade.CarbRatioSchedule"
-        case ConnectedPeripheralIDs = "com.loudnate.Naterade.ConnectedPeripheralIDs"
-        case DosingEnabled = "com.loudnate.Naterade.DosingEnabled"
-        case InsulinActionDuration = "com.loudnate.Naterade.InsulinActionDuration"
-        case InsulinSensitivitySchedule = "com.loudnate.Naterade.InsulinSensitivitySchedule"
-        case G4ReceiverEnabled = "com.loudnate.Loop.G4ReceiverEnabled"
-        case G5TransmitterID = "com.loudnate.Naterade.TransmitterID"
-        case GlucoseTargetRangeSchedule = "com.loudnate.Naterade.GlucoseTargetRangeSchedule"
-        case MaximumBasalRatePerHour = "com.loudnate.Naterade.MaximumBasalRatePerHour"
-        case MaximumBolus = "com.loudnate.Naterade.MaximumBolus"
-        case PreferredInsulinDataSource = "com.loudnate.Loop.PreferredInsulinDataSource"
-        case PumpID = "com.loudnate.Naterade.PumpID"
-        case PumpModelNumber = "com.loudnate.Naterade.PumpModelNumber"
-        case PumpRegion = "com.loopkit.Loop.PumpRegion"
-        case PumpTimeZone = "com.loudnate.Naterade.PumpTimeZone"
-        case RetrospectiveCorrectionEnabled = "com.loudnate.Loop.RetrospectiveCorrectionEnabled"
-        case BatteryChemistry = "com.loopkit.Loop.BatteryChemistry"
+        case basalRateSchedule = "com.loudnate.Naterade.BasalRateSchedule"
+        case batteryChemistry = "com.loopkit.Loop.BatteryChemistry"
+        case cgmSettings = "com.loopkit.Loop.cgmSettings"
+        case carbRatioSchedule = "com.loudnate.Naterade.CarbRatioSchedule"
+        case connectedPeripheralIDs = "com.loudnate.Naterade.ConnectedPeripheralIDs"
+        case loopSettings = "com.loopkit.Loop.loopSettings"
+        case insulinCounteractionEffects = "com.loopkit.Loop.insulinCounteractionEffects"
+        case insulinModelSettings = "com.loopkit.Loop.insulinModelSettings"
+        case insulinSensitivitySchedule = "com.loudnate.Naterade.InsulinSensitivitySchedule"
+        case preferredInsulinDataSource = "com.loudnate.Loop.PreferredInsulinDataSource"
+        case pumpSettings = "com.loopkit.Loop.PumpSettings"
+        case pumpState = "com.loopkit.Loop.PumpState"
     }
 
     var basalRateSchedule: BasalRateSchedule? {
         get {
-            if let rawValue = dictionary(forKey: Key.BasalRateSchedule.rawValue) {
+            if let rawValue = dictionary(forKey: Key.basalRateSchedule.rawValue) {
                 return BasalRateSchedule(rawValue: rawValue)
             } else {
                 return nil
             }
         }
         set {
-            set(newValue?.rawValue, forKey: Key.BasalRateSchedule.rawValue)
+            set(newValue?.rawValue, forKey: Key.basalRateSchedule.rawValue)
         }
     }
 
     var carbRatioSchedule: CarbRatioSchedule? {
         get {
-            if let rawValue = dictionary(forKey: Key.CarbRatioSchedule.rawValue) {
+            if let rawValue = dictionary(forKey: Key.carbRatioSchedule.rawValue) {
                 return CarbRatioSchedule(rawValue: rawValue)
             } else {
                 return nil
             }
         }
         set {
-            set(newValue?.rawValue, forKey: Key.CarbRatioSchedule.rawValue)
+            set(newValue?.rawValue, forKey: Key.carbRatioSchedule.rawValue)
+        }
+    }
+
+    var cgm: CGM? {
+        get {
+            if let rawValue = dictionary(forKey: Key.cgmSettings.rawValue) {
+                return CGM(rawValue: rawValue)
+            } else {
+                // Migrate the "version 0" case. Further format changes should be handled in the CGM initializer
+                defer {
+                    removeObject(forKey: "com.loopkit.Loop.G5TransmitterEnabled")
+                    removeObject(forKey: "com.loudnate.Loop.G4ReceiverEnabled")
+                    removeObject(forKey: "com.loopkit.Loop.FetchEnliteDataEnabled")
+                    removeObject(forKey: "com.loudnate.Naterade.TransmitterID")
+                }
+
+                if bool(forKey: "com.loudnate.Loop.G4ReceiverEnabled") {
+                    self.cgm = .g4
+                    return .g4
+                }
+
+                if bool(forKey: "com.loopkit.Loop.FetchEnliteDataEnabled") {
+                    self.cgm = .enlite
+                    return .enlite
+                }
+
+                if let transmitterID = string(forKey: "com.loudnate.Naterade.TransmitterID"), transmitterID.count == 6 {
+                    self.cgm = .g5(transmitterID: transmitterID)
+                    return .g5(transmitterID: transmitterID)
+                }
+
+                return nil
+            }
+        }
+        set {
+            set(newValue?.rawValue, forKey: Key.cgmSettings.rawValue)
         }
     }
 
     var connectedPeripheralIDs: [String] {
         get {
-            return array(forKey: Key.ConnectedPeripheralIDs.rawValue) as? [String] ?? []
+            return array(forKey: Key.connectedPeripheralIDs.rawValue) as? [String] ?? []
         }
         set {
-            set(newValue, forKey: Key.ConnectedPeripheralIDs.rawValue)
+            set(newValue, forKey: Key.connectedPeripheralIDs.rawValue)
         }
     }
 
-    var dosingEnabled: Bool {
+    var loopSettings: LoopSettings? {
         get {
-            return bool(forKey: Key.DosingEnabled.rawValue)
-        }
-        set {
-            set(newValue, forKey: Key.DosingEnabled.rawValue)
-        }
-    }
-
-    var insulinActionDuration: TimeInterval? {
-        get {
-            let value = double(forKey: Key.InsulinActionDuration.rawValue)
-
-            return value > 0 ? value : nil
-        }
-        set {
-            if let insulinActionDuration = newValue {
-                set(insulinActionDuration, forKey: Key.InsulinActionDuration.rawValue)
+            if let rawValue = dictionary(forKey: Key.loopSettings.rawValue) {
+                return LoopSettings(rawValue: rawValue)
             } else {
-                removeObject(forKey: Key.InsulinActionDuration.rawValue)
+                // Migrate the version 0 case
+                defer {
+                    removeObject(forKey: "com.loudnate.Naterade.DosingEnabled")
+                    removeObject(forKey: "com.loudnate.Naterade.GlucoseTargetRangeSchedule")
+                    removeObject(forKey: "com.loudnate.Naterade.MaximumBasalRatePerHour")
+                    removeObject(forKey: "com.loudnate.Naterade.MaximumBolus")
+                    removeObject(forKey: "com.loopkit.Loop.MinimumBGGuard")
+                    removeObject(forKey: "com.loudnate.Loop.RetrospectiveCorrectionEnabled")
+                }
+
+                let glucoseTargetRangeSchedule: GlucoseRangeSchedule?
+                if let rawValue = dictionary(forKey: "com.loudnate.Naterade.GlucoseTargetRangeSchedule") {
+                    glucoseTargetRangeSchedule = GlucoseRangeSchedule(rawValue: rawValue)
+                } else {
+                    glucoseTargetRangeSchedule = nil
+                }
+
+                let suspendThreshold: GlucoseThreshold?
+                if let rawValue = dictionary(forKey: "com.loopkit.Loop.MinimumBGGuard") {
+                    suspendThreshold = GlucoseThreshold(rawValue: rawValue)
+                } else {
+                    suspendThreshold = nil
+                }
+
+                var maximumBasalRatePerHour: Double? = double(forKey: "com.loudnate.Naterade.MaximumBasalRatePerHour")
+                if maximumBasalRatePerHour! <= 0 {
+                    maximumBasalRatePerHour = nil
+                }
+
+                var maximumBolus: Double? = double(forKey: "com.loudnate.Naterade.MaximumBolus")
+                if maximumBolus! <= 0 {
+                    maximumBolus = nil
+                }
+
+                let settings = LoopSettings(
+                    dosingEnabled: bool(forKey: "com.loudnate.Naterade.DosingEnabled"),
+                    glucoseTargetRangeSchedule: glucoseTargetRangeSchedule,
+                    maximumBasalRatePerHour: maximumBasalRatePerHour,
+                    maximumBolus: maximumBolus,
+                    suspendThreshold: suspendThreshold,
+                    retrospectiveCorrectionEnabled: bool(forKey: "com.loudnate.Loop.RetrospectiveCorrectionEnabled")
+                )
+                self.loopSettings = settings
+
+                return settings
             }
+        }
+        set {
+            set(newValue?.rawValue, forKey: Key.loopSettings.rawValue)
+        }
+    }
+
+    var insulinModelSettings: InsulinModelSettings? {
+        get {
+            if let rawValue = dictionary(forKey: Key.insulinModelSettings.rawValue) {
+                return InsulinModelSettings(rawValue: rawValue)
+            } else {
+                // Migrate the version 0 case
+                let insulinActionDurationKey = "com.loudnate.Naterade.InsulinActionDuration"
+                defer {
+                    removeObject(forKey: insulinActionDurationKey)
+                }
+
+                let value = double(forKey: insulinActionDurationKey)
+                return value > 0 ? .walsh(WalshInsulinModel(actionDuration: value)) : nil
+            }
+        }
+        set {
+            set(newValue?.rawValue, forKey: Key.insulinModelSettings.rawValue)
+        }
+    }
+
+    var insulinCounteractionEffects: [GlucoseEffectVelocity]? {
+        get {
+            guard let rawValue = array(forKey: Key.insulinCounteractionEffects.rawValue) as? [GlucoseEffectVelocity.RawValue] else {
+                return nil
+            }
+            return rawValue.compactMap {
+                GlucoseEffectVelocity(rawValue: $0)
+            }
+        }
+        set {
+            set(newValue?.map({ $0.rawValue }), forKey: Key.insulinCounteractionEffects.rawValue)
         }
     }
 
     var insulinSensitivitySchedule: InsulinSensitivitySchedule? {
         get {
-            if let rawValue = dictionary(forKey: Key.InsulinSensitivitySchedule.rawValue) {
+            if let rawValue = dictionary(forKey: Key.insulinSensitivitySchedule.rawValue) {
                 return InsulinSensitivitySchedule(rawValue: rawValue)
             } else {
                 return nil
             }
         }
         set {
-            set(newValue?.rawValue, forKey: Key.InsulinSensitivitySchedule.rawValue)
-        }
-    }
-
-    var glucoseTargetRangeSchedule: GlucoseRangeSchedule? {
-        get {
-            if let rawValue = dictionary(forKey: Key.GlucoseTargetRangeSchedule.rawValue) {
-                return GlucoseRangeSchedule(rawValue: rawValue)
-            } else {
-                return nil
-            }
-        }
-        set {
-            set(newValue?.rawValue, forKey: Key.GlucoseTargetRangeSchedule.rawValue)
-        }
-    }
-
-    var maximumBasalRatePerHour: Double? {
-        get {
-            let value = double(forKey: Key.MaximumBasalRatePerHour.rawValue)
-
-            return value > 0 ? value : nil
-        }
-        set {
-            if let maximumBasalRatePerHour = newValue {
-                set(maximumBasalRatePerHour, forKey: Key.MaximumBasalRatePerHour.rawValue)
-            } else {
-                removeObject(forKey: Key.MaximumBasalRatePerHour.rawValue)
-            }
-        }
-    }
-
-    var maximumBolus: Double? {
-        get {
-            let value = double(forKey: Key.MaximumBolus.rawValue)
-
-            return value > 0 ? value : nil
-        }
-        set {
-            if let maximumBolus = newValue {
-                set(maximumBolus, forKey: Key.MaximumBolus.rawValue)
-            } else {
-                removeObject(forKey: Key.MaximumBolus.rawValue)
-            }
+            set(newValue?.rawValue, forKey: Key.insulinSensitivitySchedule.rawValue)
         }
     }
 
     var preferredInsulinDataSource: InsulinDataSource? {
         get {
-            return InsulinDataSource(rawValue: integer(forKey: Key.PreferredInsulinDataSource.rawValue))
+            return InsulinDataSource(rawValue: integer(forKey: Key.preferredInsulinDataSource.rawValue))
         }
         set {
             if let preferredInsulinDataSource = newValue {
-                set(preferredInsulinDataSource.rawValue, forKey: Key.PreferredInsulinDataSource.rawValue)
+                set(preferredInsulinDataSource.rawValue, forKey: Key.preferredInsulinDataSource.rawValue)
             } else {
-                removeObject(forKey: Key.PreferredInsulinDataSource.rawValue)
+                removeObject(forKey: Key.preferredInsulinDataSource.rawValue)
             }
         }
     }
 
-    var pumpID: String? {
+    var pumpSettings: PumpSettings? {
         get {
-            return string(forKey: Key.PumpID.rawValue)
-        }
-        set {
-            set(newValue, forKey: Key.PumpID.rawValue)
-        }
-    }
-
-    var pumpModelNumber: String? {
-        get {
-            return string(forKey: Key.PumpModelNumber.rawValue)
-        }
-        set {
-            set(newValue, forKey: Key.PumpModelNumber.rawValue)
-        }
-    }
-
-    var pumpRegion: PumpRegion? {
-        get {
-            // Defaults to 0 / northAmerica
-            return PumpRegion(rawValue: integer(forKey: Key.PumpRegion.rawValue))
-        }
-        set {
-            set(newValue?.rawValue, forKey: Key.PumpRegion.rawValue)
-        }
-    }
-
-    var pumpTimeZone: TimeZone? {
-        get {
-            if let offset = object(forKey: Key.PumpTimeZone.rawValue) as? NSNumber {
-                return TimeZone(secondsFromGMT: offset.intValue)
+            if let raw = dictionary(forKey: Key.pumpSettings.rawValue) {
+                return PumpSettings(rawValue: raw)
             } else {
-                return nil
-            }
-        } set {
-            if let value = newValue {
-                set(NSNumber(value: value.secondsFromGMT() as Int), forKey: Key.PumpTimeZone.rawValue)
-            } else {
-                removeObject(forKey: Key.PumpTimeZone.rawValue)
+                // Migrate the version 0 case
+                let standard = UserDefaults.standard
+                defer {
+                    standard.removeObject(forKey: "com.loudnate.Naterade.PumpID")
+                    standard.removeObject(forKey: "com.loopkit.Loop.PumpRegion")
+                }
+
+                guard let pumpID = standard.string(forKey: "com.loudnate.Naterade.PumpID") else {
+                    return nil
+                }
+
+                let settings = PumpSettings(
+                    pumpID: pumpID,
+                    // Defaults to 0 / northAmerica
+                    pumpRegion: PumpRegion(rawValue: standard.integer(forKey: "com.loopkit.Loop.PumpRegion"))
+                )
+
+                self.pumpSettings = settings
+
+                return settings
             }
         }
-    }
-
-    var receiverEnabled: Bool {
-        get {
-            return bool(forKey: Key.G4ReceiverEnabled.rawValue)
-        }
         set {
-            set(newValue, forKey: Key.G4ReceiverEnabled.rawValue)
+            set(newValue?.rawValue, forKey: Key.pumpSettings.rawValue)
         }
     }
 
-    var retrospectiveCorrectionEnabled: Bool {
+    var pumpState: PumpState? {
         get {
-            return bool(forKey: Key.RetrospectiveCorrectionEnabled.rawValue)
+            if let raw = dictionary(forKey: Key.pumpState.rawValue) {
+                return PumpState(rawValue: raw)
+            } else {
+                // Migrate the version 0 case
+                let standard = UserDefaults.standard
+                defer {
+                    standard.removeObject(forKey: "com.loudnate.Naterade.PumpModelNumber")
+                    standard.removeObject(forKey: "com.loudnate.Naterade.PumpTimeZone")
+                }
+
+                var state = PumpState()
+
+                if let pumpModelNumber = standard.string(forKey: "com.loudnate.Naterade.PumpModelNumber") {
+                    state.pumpModel = PumpModel(rawValue: pumpModelNumber)
+                }
+
+                if let offset = standard.object(forKey: "com.loudnate.Naterade.PumpTimeZone") as? NSNumber,
+                    let timeZone = TimeZone(secondsFromGMT: offset.intValue)
+                {
+                    state.timeZone = timeZone
+                }
+
+                self.pumpState = state
+
+                return state
+            }
         }
         set {
-            set(newValue, forKey: Key.RetrospectiveCorrectionEnabled.rawValue)
+            set(newValue?.rawValue, forKey: Key.pumpState.rawValue)
         }
     }
 
-    var transmitterID: String? {
-        get {
-            return string(forKey: Key.G5TransmitterID.rawValue)
-        }
-        set {
-            set(newValue, forKey: Key.G5TransmitterID.rawValue)
-        }
-    }
-    
     var batteryChemistry: BatteryChemistryType? {
         get {
-            return BatteryChemistryType(rawValue: integer(forKey: Key.BatteryChemistry.rawValue))
+            return BatteryChemistryType(rawValue: integer(forKey: Key.batteryChemistry.rawValue))
         }
         set {
             if let batteryChemistry = newValue {
-                set(batteryChemistry.rawValue, forKey: Key.BatteryChemistry.rawValue)
+                set(batteryChemistry.rawValue, forKey: Key.batteryChemistry.rawValue)
             } else {
-                removeObject(forKey: Key.BatteryChemistry.rawValue)
+                removeObject(forKey: Key.batteryChemistry.rawValue)
             }
         }
     }
